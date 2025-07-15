@@ -1,0 +1,317 @@
+#include<iostream>
+#include<fstream>
+using namespace std;
+
+struct Node
+{
+    int data;
+    Node* left;
+    Node* right;
+    char colour;
+};
+
+class RedBlackTree
+{
+protected:
+	Node* root;
+private:
+	Node* findParent(Node* root, Node* pt)
+	{
+		if (root == nullptr || root == pt) return nullptr;
+		if (root->left == pt || root->right == pt) return root;
+		if (pt->data < root->data)
+			return findParent(root->left, pt);
+		else
+			return findParent(root->right, pt);
+	}
+
+	void inorder(Node* node) {
+		if (!node) return;
+		inorder(node->left);
+		cout << node->data << "(" << node->colour << ") ";
+		inorder(node->right);
+	}
+
+	void preorder(Node* node) {
+		if (!node) return;
+		cout << node->data << "(" << node->colour << ") ";
+		preorder(node->left);
+		preorder(node->right);
+	}
+
+	void postorder(Node* node) {
+		if (!node) return;
+		postorder(node->left);
+		postorder(node->right);
+		cout << node->data << "(" << node->colour << ") ";
+	}
+
+	void preorderNRL(Node* node) {
+		if (!node) return;
+		cout << node->data << "(" << node->colour << ") ";
+		preorderNRL(node->right);
+		preorderNRL(node->left);
+	}
+
+	void inorderRNL(Node* node) {
+		if (!node) return;
+		inorderRNL(node->right);
+		cout << node->data << "(" << node->colour << ") ";
+		inorderRNL(node->left);
+	}
+
+	void postorderRLN(Node* node) {
+		if (!node) return;
+		postorderRLN(node->right);
+		postorderRLN(node->left);
+		cout << node->data << "(" << node->colour << ") ";
+	}
+
+	void rotateLeft(Node*& rootRef, Node* pt) {
+		Node* rightChild = pt->right;
+		pt->right = rightChild->left;
+		rightChild->left = pt;
+
+		Node* parent = findParent(rootRef, pt);
+		if (parent == nullptr) {
+			rootRef = rightChild;
+		}
+		else if (parent->left == pt) {
+			parent->left = rightChild;
+		}
+		else {
+			parent->right = rightChild;
+		}
+	}
+
+	void rotateRight(Node*& rootRef, Node* pt) {
+		Node* leftChild = pt->left;
+		pt->left = leftChild->right;
+		leftChild->right = pt;
+
+		Node* parent = findParent(rootRef, pt);
+		if (parent == nullptr) {
+			rootRef = leftChild;
+		}
+		else if (parent->left == pt) {
+			parent->left = leftChild;
+		}
+		else {
+			parent->right = leftChild;
+		}
+	}
+
+	void fixViolation(Node*& rootRef, Node* pt) {
+		while (pt != rootRef && findParent(rootRef, pt) != nullptr && findParent(rootRef, pt)->colour == 'R') {
+			Node* parent = findParent(rootRef, pt);
+			Node* grandparent = findParent(rootRef, parent);
+
+			if (parent == grandparent->left) {
+				Node* uncle = grandparent->right;
+
+				if (uncle != nullptr && uncle->colour == 'R') {
+					// Case 1: Uncle is red
+					parent->colour = 'B';
+					uncle->colour = 'B';
+					grandparent->colour = 'R';
+					pt = grandparent;
+				}
+				else {
+					// Case 2 & 3: Uncle is black or nullptr
+					if (pt == parent->right) {
+						rotateLeft(rootRef, parent);
+						pt = parent;
+						parent = findParent(rootRef, pt);
+					}
+					rotateRight(rootRef, grandparent);
+					swap(parent->colour, grandparent->colour);
+					pt = parent;
+				}
+			}
+			else {
+				Node* uncle = grandparent->left;
+
+				if (uncle != nullptr && uncle->colour == 'R') {
+					// Case 1
+					parent->colour = 'B';
+					uncle->colour = 'B';
+					grandparent->colour = 'R';
+					pt = grandparent;
+				}
+				else {
+					// Case 2 & 3
+					if (pt == parent->left) {
+						rotateRight(rootRef, parent);
+						pt = parent;
+						parent = findParent(rootRef, pt);
+					}
+					rotateLeft(rootRef, grandparent);
+					swap(parent->colour, grandparent->colour);
+					pt = parent;
+				}
+			}
+		}
+		rootRef->colour = 'B';
+	}
+
+	void destroyTreeHelper(Node* node) {
+		if (node == nullptr) return;
+		destroyTreeHelper(node->left);
+		destroyTreeHelper(node->right);
+		delete node;
+	}
+public:
+	RedBlackTree() : root(nullptr) {}
+	void insert(int value)
+	{
+		Node* pt = new Node;
+		pt->data = value;
+		pt->left = pt->right = nullptr;
+		pt->colour = 'R';
+		if (root == nullptr)
+		{
+			root = pt;
+			root->colour = 'B';
+			return;
+		}
+		Node* parent = nullptr;
+		Node* current = root;
+		while (current != nullptr)
+		{
+			parent = current;
+			if (pt->data < current->data)
+				current = current->left;
+			else if (pt->data > current->data)
+				current = current->right;
+			else
+				return; // Duplicate values are not allowed
+		}
+		if (pt->data < parent->data)
+			parent->left = pt;
+		else
+			parent->right = pt;
+		fixViolation(root, pt);
+	}
+	void parentfinder(int value)
+	{
+		Node* pt = root;
+		while (pt != nullptr)
+		{
+			if (pt->data == value)
+			{
+				Node* parent = findParent(root, pt);
+				if (parent != nullptr)
+					cout << "Parent of " << value << " is " << parent->data << endl;
+				else
+					cout << "Node " << value << " has no parent (it is the root)." << endl;
+				return;
+			}
+			else if (value < pt->data)
+				pt = pt->left;
+			else
+				pt = pt->right;
+		}
+		cout << "Node " << value << " not found in the tree." << endl;
+	}
+	void display(int option) {
+		switch (option) {
+		case 3: preorder(root); break;
+		case 4: inorder(root); break;
+		case 5: postorder(root); break;
+		case 6: preorderNRL(root); break;
+		case 7: inorderRNL(root); break;
+		case 8: postorderRLN(root); break;
+		}
+		cout << endl;
+	}
+	void search(int value) {
+		Node* current = root;
+		while (current != nullptr) {
+			if (current->data == value) {
+				cout << "Node " << value << " found in the tree." << endl;
+				return;
+			}
+			else if (value < current->data) {
+				current = current->left;
+			}
+			else {
+				current = current->right;
+			}
+		}
+		cout << "Node " << value << " not found in the tree." << endl;
+	}
+	void readFromFile() {
+		ifstream fin("input.txt");
+		if (!fin) {
+			cout << "Error opening file." << endl;
+			return;
+		}
+		int value;
+		while (fin >> value) {
+			insert(value);
+		}
+		fin.close();
+		cout << "Values read from file and inserted into the tree." << endl;
+	}
+	void destroyTree() {
+		destroyTreeHelper(root);
+		root = nullptr;
+	}
+
+};
+
+int main() {
+	RedBlackTree tree;
+	int choice, value;
+	while (true) {
+		cout << "1. Insert\n2. Search\n3. Preorder Traversal\n4. Inorder Traversal\n5. Postorder Traversal\n6. Preorder NRL Traversal\n7. Inorder RNL Traversal\n8. Postorder RLN Traversal\n9. Find Parent\n10. Read from File\n11. Destroy Tree\n12. Exit\n";
+		cout << "Enter your choice: ";
+		cin >> choice;
+		switch (choice) {
+		case 1:
+			cout << "Enter value to insert: ";
+			cin >> value;
+			tree.insert(value);
+			break;
+		case 2:
+			cout << "Enter value to search: ";
+			cin >> value;
+			tree.search(value);
+			break;
+		case 3:
+			tree.display(3);
+			break;
+		case 4:
+			tree.display(4);
+			break;
+		case 5:
+			tree.display(5);
+			break;
+		case 6:
+			tree.display(6);
+			break;
+		case 7:
+			tree.display(7);
+			break;
+		case 8:
+			tree.display(8);
+			break;
+		case 9:
+			cout << "Enter value to find parent: ";
+			cin >> value;
+			tree.parentfinder(value);
+			break;
+		case 10:
+			tree.readFromFile();
+			break;
+		case 11:
+			tree.destroyTree();
+			cout << "Tree destroyed." << endl;
+			break;
+		case 12:
+			return 0;
+		default:
+			cout << "Invalid choice, please try again." << endl;
+		}
+	}
+}
