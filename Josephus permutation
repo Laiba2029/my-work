@@ -1,0 +1,210 @@
+#pragma once
+#include"LinkedList.h"
+
+template<class T>
+struct Node
+{
+	T data;
+	Node<T> *next;
+};
+template<class T>
+class LinkedList
+{
+protected:
+	
+	Node<T>*tail;
+public:
+	LinkedList();
+	virtual void insertAtTail(T value) = 0;
+	virtual void display() = 0;
+	virtual void insertAtHead(T value) = 0;
+	virtual bool isEmpty() = 0;
+	virtual T deleteFromTail() = 0;
+	virtual T deleteFromHead() = 0;
+};
+template<class T>
+
+LinkedList<T>::LinkedList()
+{
+	tail = nullptr;
+}
+template<class T>
+class myLL : public LinkedList<T>
+{
+public:
+	bool isEmpty();
+	void insertAtTail(T value);
+	void insertAtHead(T value);
+	void display();
+	T deleteFromHead();
+	T deleteFromTail();
+	void clear();
+	T winner(int start, int skip);
+
+};
+template<class T>
+bool myLL<T>::isEmpty() {
+	return LinkedList<T>::tail == nullptr;
+}
+
+template<class T>
+void myLL<T>::insertAtTail(T value) {
+	Node<T>* nn = new Node<T>;
+	nn->data = value;
+	nn->next = nullptr;
+	if (isEmpty()) {
+		LinkedList<T>::tail = nn;
+		LinkedList<T>::tail->next = LinkedList<T>::tail;
+	}
+	else {
+		nn->next = LinkedList<T>::tail->next;
+		LinkedList<T>::tail->next = nn;
+		LinkedList<T>::tail = nn;
+	}
+}
+
+template<class T>
+void myLL<T>::insertAtHead(T value) {
+	Node<T>* nn = new Node<T>;
+	nn->data = value;
+	nn->next = nullptr;
+	if (isEmpty()) {
+		LinkedList<T>::tail = nn;
+		LinkedList<T>::tail->next = LinkedList<T>::tail;
+	}
+	else
+	{
+		nn->next = LinkedList<T>::tail->next;
+		LinkedList<T>::tail->next = nn;
+	}
+}
+
+template<class T>
+void myLL<T>::display() {
+	Node<T>* temp = LinkedList<T>::tail->next;
+	do {
+		cout << temp->data << endl;
+		temp = temp->next;
+
+	} while (temp != LinkedList<T>::tail->next);
+}
+
+template<class T>
+T myLL<T>::deleteFromHead() {
+	if (isEmpty())
+	{
+		cout << "List is empty" << endl;
+		return NULL;
+	}
+	else {
+		int returnValue = LinkedList<T>::tail->next->data;
+		LinkedList<T>::tail->next = LinkedList<T>::tail->next->next;
+		return returnValue;
+	}
+}
+
+template<class T>
+T myLL<T>::deleteFromTail() {
+	if (isEmpty())
+	{
+		cout << "List is empty" << endl;
+		return NULL;
+	}
+	else {
+		Node<T>* temp = LinkedList<T>::tail->next;
+		while (1) {
+			if (temp->next->next == LinkedList<T>::tail->next)
+				break;
+			temp = temp->next;
+		}
+		int returnValue = temp->next->data;
+		temp->next = LinkedList<T>::tail->next;
+		delete LinkedList<T>::tail;
+		LinkedList<T>::tail = temp;
+		return returnValue;
+	}
+}
+
+template<class T>
+void myLL<T>::clear() {
+	if (!LinkedList<T>::tail) return;
+	Node<T>* current = LinkedList<T>::tail->next;
+	while (current != LinkedList<T>::tail) {
+		Node<T>* temp = current;
+		current = current->next;
+		delete temp;
+	}
+	delete LinkedList<T>::tail;
+	LinkedList<T>::tail = nullptr;
+}
+template<class T>
+T myLL<T>::winner(int start, int skip) {
+	Node<T>* prev = nullptr;
+	Node<T>* current = LinkedList<T>::tail->next;
+	while (current->data != start) {
+		prev = current;
+		current = current->next;
+	}
+	while (current->next != current) {
+		for (int i = 0;i < skip;i++) {
+			prev = current;
+			current = current->next;
+		}
+		prev->next = current->next;
+		Node<T>* temp = current;
+		current = current->next;
+
+		if (temp == LinkedList<T>::tail)
+			LinkedList<T>::tail = current;
+		delete temp;
+	}
+	LinkedList<T>::tail = current;
+	return current->data;
+}
+
+int main() {
+	// take starting point, no of skips and total number of persons from the user
+	// make a linked list (with random number) of the size given by the user
+	// using 2 node pointers prev and current to keep track of enteries and carefully kill the person
+	// find the starting point input by the user using while loop
+	// using a for loop to skip the enteries and kill the person
+	// if the person to be killed is at the tail of LL then update the tail and kill the person
+	// at the end of the function return the winner
+
+	int winner = 0;
+	myLL<int> game;
+	int choice;
+	do {
+		cout << "--- Josephus Problem Menu ---" << endl;
+		cout << "1. Start the game" << endl;
+		cout << "2. Exit" << endl;
+		cout << "Enter your choice: ";
+
+		cin >> choice;
+		if (choice == 1) {
+			int n, start, skip;
+			cout << "Enter the number of people in the circle: ";
+			cin >> n;
+			cout << "Enter the starting person number (1 to " << n << "): ";
+			cin >> start;
+			cout << "Enter the number of persons NOT to be killed (k): ";
+			cin >> skip;
+
+			game.clear();
+			if (winner != 0) {
+				cout << "Last winner was person: " << winner << endl;
+			}
+			for (int i = 0;i < n;i++) {
+				game.insertAtTail(i+1);
+			}
+			winner = game.winner(start, skip);
+			cout << "The winner is person: " << winner << endl;
+		}
+		else if (choice == 2) {
+			cout << "Exiting game." << endl;
+			break;
+		}
+	} while (choice == 1 || choice == 2);
+	return 0;
+}
+
