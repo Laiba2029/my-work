@@ -1,0 +1,194 @@
+#include<iostream>
+using namespace std;
+
+struct Node {
+	int data;
+	Node* left;
+	Node* right;
+};
+class BST
+{
+protected:
+	Node* root;
+public:
+	BST();
+	virtual void insert(int data) = 0;
+	virtual void inOrder() = 0;
+	virtual void preOrder() = 0;
+	virtual void postOrder() = 0;
+	virtual void search(int data) = 0;
+	virtual int max() = 0;
+	virtual int min() = 0;
+	virtual void deletevalue(int data) = 0;
+};
+
+BST::BST()
+{
+	root = nullptr;
+}
+
+class MyBST : public BST
+{
+	void deleteValueHelper(Node*& temp, int data) {
+		if (data < temp->data) {
+			deleteValueHelper(temp->left, data);
+		}
+		else if (data > temp->data) {
+			deleteValueHelper(temp->right, data);
+		}
+		else {
+			if (temp->left == nullptr && temp->right == nullptr) {
+				delete temp;
+				temp = nullptr;
+			}
+			else if (temp->left == nullptr) {
+				Node* delNode = temp;
+				temp = temp->right;
+				delete delNode;
+				delNode = nullptr;
+			}
+			else if (temp->right == nullptr) {
+				Node* delNode = temp;
+				temp = temp->left;
+				delete delNode;
+				delNode = nullptr;
+			}
+			else {
+				int toCopy = searchmin(temp->right); // Find the minimum in the right subtree
+				temp->data = toCopy;
+				deleteValueHelper(temp->right, toCopy);
+			}
+		}
+	}
+	int searchmax(Node* temp) {
+		if (temp->right == nullptr)
+			return temp->data;
+		return searchmax(temp->right);
+	}
+	int searchmin(Node* temp) {
+		if (temp->left == nullptr)
+			return temp->data;
+		return searchmin(temp->left);
+	}
+	void inOrderHelper(Node* temp) {
+		if (temp == nullptr)
+			return;
+		inOrderHelper(temp->left);
+		cout << temp->data << "\t";
+		inOrderHelper(temp->right);
+	}
+	void PreOrderHelper(Node* temp) {
+		if (temp == nullptr) {
+			return;
+		}
+		cout << temp->data << " ";	//N
+		PreOrderHelper(temp->left);	//L
+
+		PreOrderHelper(temp->right); //R
+	}
+	void PostOrderHelper(Node* temp) {
+		if (temp == nullptr) {
+			return;
+		}
+
+		PostOrderHelper(temp->left);	//L
+		PostOrderHelper(temp->right); //R
+		cout << temp->data << " ";	//N
+	}
+	void searchHelper(Node* temp, int data) {
+		if (temp == nullptr) {
+			cout << "Element not found." << endl;
+			return;
+		}
+		if (data < temp->data)
+			searchHelper(temp->left, data);
+		else if (data > temp->data)
+			searchHelper(temp->right, data);
+		else {
+			cout << "Element found: " << temp->data << endl;
+			return;
+		}
+
+	}
+public:
+	void insert(int data) {
+		Node* newNode = new Node();
+		newNode->data = data;
+		newNode->left = nullptr;
+		newNode->right = nullptr;
+		if (root == nullptr)
+		{
+			root = newNode;
+			return;
+		}
+		Node* temp = root;
+		while (1) {
+			if (data < temp->data) {
+				if (temp->left == nullptr) {
+					temp->left = newNode;
+					return;
+				}
+				temp = temp->left;
+			}
+			else {
+				if (temp->right == nullptr) {
+					temp->right = newNode;
+					return;
+				}
+				temp = temp->right;
+			}
+		}
+	}
+	void inOrder() {
+		if (root == nullptr) {
+			cout << "Tree is empty" << endl;
+			return;
+		}
+		inOrderHelper(root);
+		cout << endl;
+	}
+	void preOrder() {
+		if (root == nullptr) {
+			cout << "Tree is empty." << endl;
+			return;
+		}
+		PreOrderHelper(root);
+		cout << endl;
+	}
+	void postOrder() {
+		if (root == nullptr) {
+			cout << "Tree is empty." << endl;
+			return;
+		}
+		PostOrderHelper(root);
+		cout << endl;
+	}
+	void search(int data) {
+		if (root == nullptr) {
+			cout << "Tree is empty." << endl;
+			return;
+		}
+		searchHelper(root, data);
+	}
+	int max() {
+		if (root == nullptr) {
+			cout << "Tree is empty" << endl;
+			return 0;
+		}
+		return searchmax(root);
+	}
+	int min() {
+		if (root == nullptr) {
+			cout << "Tree is empty" << endl;
+			return 0;
+		}
+		return searchmin(root);
+	}
+	void deletevalue(int data) {
+		if (root == nullptr) {
+			cout << "Tree is empty" << endl;
+			return;
+		}
+		deleteValueHelper(root, data);
+	}
+};
