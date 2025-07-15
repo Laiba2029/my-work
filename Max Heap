@@ -1,0 +1,86 @@
+
+class MAXHeap {
+protected:
+	int* arr;
+	int size;
+public:
+	MAXHeap(int s) {
+		arr = new int[s + 1];
+		size = s + 1;
+	}
+	~MAXHeap() {
+		delete[] arr;
+	}
+	virtual void insert(int val) = 0;
+	virtual int remove() = 0;
+	virtual void display() = 0;
+};
+
+class MymaxHeap : public MAXHeap {
+	void heapifyup(int i) {
+		int child = i;
+		int parent = i / 2;
+		while (parent >= 1 && arr[parent] < arr[child]) {
+			swap(arr[child], arr[parent]);
+			child = parent;
+			parent = child / 2;
+		}
+	}
+	void heapifydown(int i) {
+		int parent = i;
+
+		while (2 * parent < arr[0]) {
+			int Lchild = 2 * parent;
+			int Rchild = 2 * parent + 1;
+			int largest = Lchild;
+
+			if (Rchild < arr[0] && arr[Rchild] > arr[Lchild]) {
+				largest = Rchild;
+			}
+
+			if (arr[parent] >= arr[largest])
+				break;
+
+			swap(arr[parent], arr[largest]);
+			parent = largest;
+		}
+
+	}
+public:
+	MymaxHeap(int s) : MAXHeap(s) {
+		arr[0] = 1; // Initialize the first element to 1, indicating the next index to be used
+	}
+	void insert(int val) {
+		if (arr[0] >= size1) {
+			cout << "Heap is full" << endl;
+			return;
+		}
+		arr[arr[0]] = val;
+		arr[0]++;
+		
+		heapifyup(arr[0] - 1);
+	}
+	int remove() {
+		if (arr[0] <= 1) {
+			cout << "Heap is empty" << endl;
+			return -1; // Indicating heap is empty
+		}
+		int returnValue = arr[1];
+		arr[0]--;
+		arr[1] = arr[arr[0]];
+		if (arr[0] > 1)
+			heapifydown(1);
+		return returnValue;
+	}
+
+	void display() {
+		for (int i = 1; i < arr[0]; i++) {
+			cout << arr[i] << " ";
+		}
+		cout << endl;
+	}
+
+	void heapsortAscending() {
+
+	}
+};
