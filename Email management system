@@ -1,0 +1,389 @@
+
+#include <iostream>
+#include <fstream>
+#include <string>
+using namespace std;
+
+struct Email {
+    int id;
+    string sender;
+    string subject;
+    string content;
+    string time;
+    bool is_starred;
+    string category;
+    string status;
+};
+
+struct Node {
+    Email data;
+    Node* next;
+
+    Node() : next(nullptr) {}
+
+    Node(int id, const string& sender, const string& subject, const string& content, const string& time, bool is_starred, const string& category, const string& status)
+        : next(nullptr) {
+        data.id = id;
+        data.sender = sender;
+        data.subject = subject;
+        data.content = content;
+        data.time = time;
+        data.is_starred = is_starred;
+        data.category = category;
+        data.status = status;
+    }
+
+    Node(const Email& e) : data(e), next(nullptr) {}
+};
+
+class LinkedList {
+private:
+    Node* head;
+
+public:
+    LinkedList() : head(nullptr) {}
+
+    void append(const Email& e) {
+        if ((e.status == "inbox" || e.status == "archive" || e.status == "bin" || e.status == "queue")
+            && existsId(e.id, e.status)) return;
+        Node* newNode = new Node(e);
+        if (!head) { head = newNode; return; }
+        Node* temp = head;
+        while (temp->next) temp = temp->next;
+        temp->next = newNode;
+    }
+
+    bool removeById(int id, Email& removed, const string& targetStatus) {
+        Node* curr = head;
+        Node* prev = nullptr;
+        while (curr) {
+            if (curr->data.id == id && curr->data.status == targetStatus) {
+                removed = curr->data;
+                if (prev) prev->next = curr->next;
+                else head = curr->next;
+                delete curr;
+                return true;
+            }
+            prev = curr;
+            curr = curr->next;
+        }
+        return false;
+    }
+
+    Email* findById(int id, const string& status) {
+        Node* temp = head;
+        while (temp) {
+            if (temp->data.id == id && temp->data.status == status) return &(temp->data);
+            temp = temp->next;
+        }
+        return nullptr;
+    }
+
+    void printByStatus(const string& status) const {
+        Node* temp = head;
+        bool found = false;
+        while (temp) {
+            const Email& e = temp->data;
+            if (e.status == status) {
+                cout << "ID: " << e.id << ", From: " << e.sender << ", Subject: " << e.subject
+                    << ", Starred: " << (e.is_starred ? "Yes" : "No") << ", Category: " << e.category << endl;
+                found = true;
+            }
+            temp = temp->next;
+        }
+        if (!found) cout << "No emails in " << status << ".\n";
+    }
+
+    bool existsId(int id, const string& status = "") {
+        Node* temp = head;
+        while (temp) {
+            if (temp->data.id == id && (status.empty() || temp->data.status == status))
+                return true;
+            temp = temp->next;
+        }
+        return false;
+    }
+
+
+    bool pop(const string& status, Email& e) {
+        Node* curr = head;
+        Node* prev = nullptr;
+        while (curr) {
+            if (curr->data.status == status) {
+                e = curr->data;
+                if (prev) prev->next = curr->next;
+                else head = head->next;
+                delete curr;
+                return true;
+            }
+            prev = curr;
+            curr = curr->next;
+        }
+        return false;
+    }
+
+    void toggleStar(int id) {
+        Node* temp = head;
+        while (temp) {
+            if (temp->data.id == id && temp->data.status == "inbox") {
+                temp->data.is_starred = !temp->data.is_starred;
+                cout << "Star status toggled.\n";
+                return;
+            }
+            temp = temp->next;
+        }
+        cout << "Email not found in inbox.\n";
+    }
+
+    void filterBy(const string& type, const string& value) {
+        Node* temp = head;
+        bool found = false;
+        while (temp) {
+            if (temp->data.status == "inbox") {
+                if ((type == "sender" && temp->data.sender == value) ||
+                    (type == "category" && temp->data.category == value)) {
+                    const Email& e = temp->data;
+                    cout << "ID: " << e.id << ", Subject: " << e.subject << ", From: " << e.sender << endl;
+                    found = true;
+                }
+            }
+            temp = temp->next;
+        }
+        if (!found) cout << "No emails found matching " << type << " = " << value << ".\n";
+    
+    }
+
+    void saveToFile(const string& filename) const {
+        ofstream file(filename);
+        Node* temp = head;
+        while (temp) {
+            const Email& e = temp->data;
+            file << e.id << '\n' << e.sender << '\n' << e.subject << '\n' << e.content << '\n' << e.time << '\n'
+                << e.is_starred << '\n' << e.category << '\n' << e.status << '\n';
+            temp = temp->next;
+        }
+        file.close();
+    }
+
+    void loadFromFile(const string& filename) {
+        ifstream file(filename);
+        string line;
+        while (getline(file, line)) {
+            Email e;
+            e.id = stoi(line);
+            if (!getline(file, e.sender)) break;
+            if (!getline(file, e.subject)) break;
+            if (!getline(file, e.content)) break;
+            if (!getline(file, e.time)) break;
+            string starStr;
+            if (!getline(file, starStr)) break;
+            e.is_starred = stoi(starStr);
+            if (!getline(file, e.category)) break;
+            if (!getline(file, e.status)) break;
+            append(e);
+        }
+        file.close();
+    }
+
+    void clear() {
+        Node* temp;
+        while (head) {
+            temp = head;
+            head = head->next;
+            delete temp;
+        }
+    }
+
+    ~LinkedList() { clear(); }
+};
+
+LinkedList emails;
+
+int main() {
+    int choice;
+    emails.loadFromFile("emails.txt");
+    do {
+        cout << "\n1. View Inbox\n2. View Archive\n3. View Bin\n4. Enqueue Email\n5. Process Incoming\n6. Archive Email\n7. Delete Email\n8. Undo Archive\n9. Filter by Sender\n10. Filter by Category\n11. Toggle Star\n12. Redo Archive\n13. Undo Delete\n14. Redo Delete\n0. Exit\nChoice: ";
+        cin >> choice;
+
+        if (choice == 1) emails.printByStatus("inbox");
+        else if (choice == 2) emails.printByStatus("archive");
+        else if (choice == 3) emails.printByStatus("bin");
+
+        else if (choice == 4) {
+            Email e;
+            cout << "Enter ID: ";
+            cin >> e.id;
+            if (emails.existsId(e.id, "inbox") || emails.existsId(e.id, "archive") || emails.existsId(e.id, "queue")) {
+                cout << "Email with this ID already exists in active folders.\n";
+                continue;
+            }
+            if (emails.existsId(e.id, "bin")) {
+                cout << "Warning: Email ID already exists in Bin. Reusing this ID.\n";
+            }
+
+            cin.ignore(); 
+            cout << "Sender: "; getline(cin, e.sender);
+            cout << "Subject: "; getline(cin, e.subject);
+            cout << "Content: "; getline(cin, e.content);
+            cout << "Time: "; getline(cin, e.time);
+            cout << "Starred (0/1): "; cin >> e.is_starred;
+            cin.ignore();
+            cout << "Category: "; getline(cin, e.category);
+            e.status = "queue";
+            emails.append(e);
+        }
+
+        else if (choice == 5) {
+            Email e;
+            if (emails.pop("queue", e)) {
+                e.status = "inbox";
+                if (!emails.existsId(e.id,"inbox")) {
+                    emails.append(e);
+                    cout << "Email added to Inbox.\n";
+                }
+            }
+            else cout << "Queue is empty.\n";
+        }
+
+        else if (choice == 6) {
+            int id;
+            cout << "Enter ID to archive: ";
+            cin >> id;
+            Email e;
+            if (emails.removeById(id, e, "inbox")) {
+                e.status = "archive";
+                emails.append(e);
+                Email undo = e;
+                undo.status = "undo";
+                emails.append(undo);
+                cout << "Archived.\n";
+            }
+            else cout << "Not found in inbox.\n";
+        }
+
+        else if (choice == 7) {
+            int id;
+            cout << "Enter ID to delete: ";
+            cin >> id;
+            Email e;
+            if (emails.removeById(id, e, "inbox")) {
+                Email backup = e;
+                backup.status = "undo_delete";
+                emails.append(backup); 
+
+                e.status = "bin";
+                emails.append(e);
+                cout << "Moved to Bin.\n";
+            }
+
+            else cout << "Not found in inbox.\n";
+        }
+
+        else if (choice == 8) {
+            Email e;
+            if (emails.pop("undo", e)) {
+                Email dummy;
+                if (emails.removeById(e.id, dummy, "archive")) {
+                    if (!emails.existsId(e.id,"inbox")) {
+                        e.status = "inbox";
+                        emails.append(e);
+
+                        Email redo = e;
+                        redo.status = "redo";
+                        emails.append(redo);
+                        cout << "Undo successful.\n";
+                    }
+                }
+            }
+            else cout << "Nothing to undo.\n";
+        }
+
+
+        else if (choice == 9) {
+            string sender;
+            cout << "Enter sender: ";
+            cin.ignore();
+            getline(cin, sender);
+            emails.filterBy("sender", sender);
+        }
+
+        else if (choice == 10) {
+            string category;
+            cout << "Enter category: ";
+            cin.ignore();
+            getline(cin, category);
+            emails.filterBy("category", category);
+        }
+
+        else if (choice == 11) {
+            int id;
+            cout << "Enter ID to toggle star: ";
+            cin >> id;
+            emails.toggleStar(id);
+        }
+
+        else if (choice == 12) {
+            Email e;
+            if (emails.pop("redo", e)) {
+                e.status = "archive";
+                if (!emails.existsId(e.id,"archive")) {
+                    emails.append(e);
+                    cout << "Redo successful.\n";
+                }
+            }
+            else cout << "Nothing to redo.\n";
+        }
+        else if (choice == 13) {
+            Email e;
+            if (emails.pop("undo_delete", e)) {
+                Email dummy;
+                emails.removeById(e.id, dummy, "bin");
+
+                e.status = "inbox";
+                if (!emails.existsId(e.id, "inbox")) {
+                    emails.append(e);
+
+                    Email redo = e;
+                    redo.status = "redo_delete";
+                    emails.append(redo);
+
+                    cout << "Undo Delete successful.\n";
+                }
+
+
+                else {
+                    cout << "Email already exists in Inbox.\n";
+                }
+            }
+            else {
+                cout << "Nothing to undo from delete.\n";
+            }
+            }
+        else if (choice == 14) {
+                Email e;
+                if (emails.pop("redo_delete", e)) {
+                    Email inboxEmail;
+                    if (emails.removeById(e.id, inboxEmail, "inbox")) {
+                        inboxEmail.status = "bin";
+                        if (!emails.existsId(inboxEmail.id, "bin")) {
+                            emails.append(inboxEmail);
+                            cout << "Redo Delete successful.\n";
+                        }
+                        else {
+                            cout << "Email already exists in Bin.\n";
+                        }
+                    }
+                    else {
+                        cout << "No matching inbox email found to re-delete.\n";
+                    }
+                }
+                else {
+                    cout << "Nothing to redo from delete.\n";
+                }
+                }
+
+    } while (choice != 0);
+    emails.saveToFile("emails.txt");
+    return 0;
+}
