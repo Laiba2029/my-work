@@ -1,0 +1,167 @@
+#include <iostream>
+#include "Node.h"
+using namespace std;
+
+class LinkedList
+{
+protected:
+	
+	Node*tail;
+public:
+	LinkedList();
+	virtual void insertAtTail(int) = 0;
+	virtual void display() = 0;
+	virtual void insertAtHead(int) = 0;
+	virtual bool isEmpty() = 0;
+	virtual int deleteFromTail() = 0;
+	virtual int deleteFromHead() = 0;
+	virtual bool search(int value) = 0;
+	virtual bool deleteValue(int) = 0;
+	virtual void insertSorted(int) = 0;
+};
+
+LinkedList::LinkedList()
+{
+	tail = nullptr;
+}
+
+
+class myLL : public LinkedList
+{
+public:
+	bool isEmpty() {
+		return tail == nullptr;
+	}
+	void insertAtTail(int value) {
+		Node* nn = new Node;
+		nn->data = value;
+		nn->next = nullptr;
+		if (isEmpty()) {
+			tail = nn;
+			tail->next = tail;
+		}
+		else {
+			nn->next = tail->next;
+			tail->next = nn;
+			tail = nn;
+		}
+	}
+	void insertAtHead(int value) {
+		Node* nn = new Node;
+		nn->data = value;
+		nn->next = nullptr;
+		if (isEmpty()) {
+			tail = nn;
+			tail->next = tail;
+		}
+		else
+		{
+			nn->next = tail->next;
+			tail->next = nn;
+		}
+	}
+	void display() {
+		Node* temp = tail->next;
+		do{
+			cout << temp->data << endl;
+			temp = temp->next;
+			
+		} while (temp != tail->next);
+	}
+	int deleteFromHead() {
+		if (isEmpty())
+		{
+			cout << "List is empty" << endl;
+			return NULL;
+		}
+		else {
+			int returnValue = tail->next->data;
+			tail->next = tail->next->next;
+			return returnValue;
+		}
+	}
+	int deleteFromTail() {
+		if (isEmpty())
+		{
+			cout << "List is empty" << endl;
+			return NULL;
+		}
+		else {
+			Node* temp = tail->next;
+			while (1) {
+				if (temp->next->next == tail->next)
+					break;
+				temp = temp->next;
+			}
+			int returnValue = temp->next->data;
+			temp->next = tail->next;
+			delete tail;
+			tail = temp;
+			return returnValue;
+		}
+	}		
+	bool search(int value) {
+		if (isEmpty())
+		{
+			cout << "List is empty" << endl;
+			return false;
+		}
+		else if(tail->data==value){
+			return true;
+		}
+		else {
+			Node* temp = tail->next;
+			while (1) {
+				if (temp->data == value)
+					return true;
+				temp = temp->next;
+				if (temp == tail->next)
+					return false;
+			}
+		}
+	}
+	bool deleteValue(int value) {
+		if (isEmpty())
+		{
+			cout << "List is empty" << endl;
+			return false;
+		}
+		else  {
+			Node* temp = tail->next;
+			while (1) {
+				if (temp->next->data == value)
+					break;
+				temp = temp->next;
+				if (temp == tail->next)
+					return false;
+			}
+			temp->next = temp->next->next;
+			return true;
+		}
+	}
+	void insertSorted(int value) {
+		Node* nn = new Node;
+		nn->data = value;
+		nn->next = nullptr;
+		if (isEmpty()) {
+			tail = nn;
+			tail->next = tail;
+		}
+		else if (tail->next->data >= value) {
+			insertAtHead(value);
+		}
+		else if (tail->data <= value) {
+			insertAtTail(value);
+		}
+		else {
+			Node* temp = tail->next;
+			while (1) {
+				if (temp->data <= value && temp->next->data >= value)
+					break;
+				temp = temp->next;
+			}
+			nn->next = temp->next;
+			temp->next = nn;
+		}
+	}
+};
