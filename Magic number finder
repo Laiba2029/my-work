@@ -1,0 +1,60 @@
+#include<iostream>
+using namespace std;
+
+void maxElement(int* arr, int size, int& max) {
+	if (size == 0)
+		return;
+	if (arr[size] > max) {
+		max = arr[size];
+	}
+	maxElement(arr, size - 1, max);
+}
+
+int sumofsubset(int ans[], int ssize) {
+	if (ssize == 0)
+		return 0;
+	return ans[ssize - 1] + sumofsubset(ans, ssize - 1);
+}
+bool isSubsetSum(int arr[], int ans[], int size, int index, int ssize,int target) {
+	if (index == size) {
+		return sumofsubset(ans, ssize) == target;
+	}
+
+	if(isSubsetSum(arr, ans, size, index + 1, ssize,target)) return true; // Exclude current element
+	ans[ssize] = arr[index];
+	 return isSubsetSum(arr, ans, size, index + 1, ssize + 1,target); // Include current element
+
+}
+void removeElement(int arr[], int size, int val, int newArr[], int& newSize) {
+	newSize = 0;
+	for (int i = 0; i < size; i++) {
+		if (arr[i] != val) {
+			newArr[newSize++] = arr[i];
+		}
+	}
+}
+// Recursive Magic Number finder
+int findMagicNumber(int arr[], int size) {
+    if (size <= 1) return -1;
+
+    int max = arr[0];
+    maxElement(arr, size, max);
+
+    // Remove max to check subset sum
+    int* newArr = new int[size - 1];
+    int newSize = 0;
+    removeElement(arr, size, max, newArr, newSize);
+
+    int* tempAns = new int[newSize]; // For subset generation
+    bool found = isSubsetSum(newArr, tempAns, newSize, 0, 0, max);
+    delete[] tempAns;
+
+    if (found) {
+        delete[] newArr;
+        return max;
+    }
+
+    int next = findMagicNumber(newArr, newSize);
+    delete[] newArr;
+    return next;
+}
