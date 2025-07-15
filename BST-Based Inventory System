@@ -1,0 +1,315 @@
+#include<iostream>
+#include<queue>
+#include<string>
+using namespace std;
+
+struct product {
+	int id;
+	string name;
+	float price;
+	int quantity;
+};
+
+struct Node {
+	product data;
+	Node* left;
+	Node* right;
+};
+class BST
+{
+protected:
+	Node* root;
+public:
+	BST();
+	virtual void insert(product data) = 0;
+	virtual void inOrder() = 0;
+	virtual product min(Node*) = 0;
+	virtual void deletevalue(product data) = 0;
+	virtual void search(product data) = 0;
+	virtual void restockAlert() = 0;
+	virtual void PriceRangeSearch(float minPrice, float maxPrice) = 0;
+	virtual float InventoryValuation() = 0;
+	virtual void levelWiseDisplay()= 0;
+};
+
+BST::BST()
+{
+	root = nullptr;
+}
+
+class MyBST : public BST
+{
+	int compare(product a, product b) {
+		if (a.id < b.id) return -1;
+		 if (a.id > b.id) return 1;
+		 if (a.name < b.name) return -1; // Compare by name if IDs are equal
+		 if (a.name > b.name) return 1;
+		 return 0; // IDs and names are equal
+	}
+	void printProduct(const product& p) {
+		cout <<  p.id << " | "
+			<<  p.name << " | "
+			<<  p.price << " | "
+			<<  p.quantity << endl;
+	}
+	void inOrderHelper(Node* temp) {
+		if (temp == nullptr)
+			return;
+		inOrderHelper(temp->left);
+		printProduct(temp->data);
+		inOrderHelper(temp->right);
+	}
+	void deleteValueHelper(Node*& temp, product data) {
+		if (data.id < temp->data.id) {
+			deleteValueHelper(temp->left, data);
+		}
+		else if (data.id > temp->data.id) {
+			deleteValueHelper(temp->right, data);
+		}
+		else {
+			if (temp->left == nullptr && temp->right == nullptr) {
+				delete temp;
+				temp = nullptr;
+			}
+			else if (temp->left == nullptr) {
+				temp->data = temp->right->data;
+				delete temp->right;
+				temp->right = nullptr;
+			}
+			else if (temp->right == nullptr) {
+				temp->data = temp->left->data;
+				delete temp->left;
+				temp->left = nullptr;
+			}
+			else {
+				product toCopy = min(temp->right); // Find the minimum in the right subtree
+				temp->data = toCopy;
+				deleteValueHelper(temp->right, toCopy);
+			}
+		}
+	}
+
+	void searchHelper(Node* temp, product data) {
+		if (temp == nullptr) {
+			cout << "Product not found." << endl;
+			return;
+		}
+		if (data.id < temp->data.id)
+			searchHelper(temp->left, data);
+		else if (data.id > temp->data.id)
+			searchHelper(temp->right, data);
+		else {
+			cout << "Product found! "  << endl;
+			printProduct(temp->data);
+			return;
+		}
+
+	}
+	void restockAlertHelper(Node* temp) {
+		if (temp == nullptr)
+			return;
+		if (temp->data.quantity < 5) { // Assuming restock alert for quantity less than 5
+			printProduct(temp->data);
+		}
+		restockAlertHelper(temp->left);
+		restockAlertHelper(temp->right);
+	}
+	void PriceRangeSearchHelper(Node* temp, float minPrice, float maxPrice) {
+		if (temp == nullptr)
+			return;
+		if (temp->data.price >= minPrice && temp->data.price <= maxPrice) {
+			printProduct(temp->data);
+		}
+		PriceRangeSearchHelper(temp->left, minPrice, maxPrice);
+		PriceRangeSearchHelper(temp->right, minPrice, maxPrice);
+	}
+	void InventoryValuationHelper(Node* temp, float& totalValue) {
+		if (temp == nullptr)
+			return;
+		totalValue += temp->data.price * temp->data.quantity;
+		InventoryValuationHelper(temp->left, totalValue);
+		InventoryValuationHelper(temp->right, totalValue);
+	}
+	void levelWiseDisplayHelper(Node* temp) {
+		if (temp == nullptr)
+			return;
+		queue<Node*> q;
+		q.push(temp);
+		while (!q.empty()) {
+			Node* current = q.front();
+			q.pop();
+			printProduct(current->data);
+			if (current->left != nullptr)
+				q.push(current->left);
+			if (current->right != nullptr)
+				q.push(current->right);
+		}
+	}
+public:
+	MyBST() : BST() {}
+	void insert(product data) {
+		Node* newNode = new Node();
+		newNode->data = data;
+		newNode->left = nullptr;
+		newNode->right = nullptr;
+		if (root == nullptr)
+		{
+			root = newNode;
+			return;
+		}
+		Node* temp = root;
+		while (1) {
+			int cmp = compare(data, temp->data);
+			if (cmp<0) {
+				if (temp->left == nullptr) {
+					temp->left = newNode;
+					return;
+				}
+				temp = temp->left;
+			}
+			else if (cmp>0) {
+				if (temp->right == nullptr) {
+					temp->right = newNode;
+					return;
+				}
+				temp = temp->right;
+			}
+			else {
+				temp->data.price = data.price; // Update price if id matches
+				temp->data.quantity = data.quantity; // Update quantity if id matches
+				delete newNode; // Avoid memory leak
+				return; // No need to insert a new node if id matches
+			}
+		}
+	}
+	void inOrder() {
+		if (root == nullptr) {
+			cout << "Inventory is empty" << endl;
+			return;
+		}
+		cout << endl << "ProductID | Name | Price | Quantity " << endl << endl;
+		inOrderHelper(root);
+		cout << endl;
+	}
+	product min(Node* node) {
+		while (node->left != nullptr)
+			node = node->left;
+		return node->data;
+	}
+	void deletevalue(product data) {
+		if (root == nullptr) {
+			cout << "Inventory is empty" << endl;
+			return;
+		}
+		deleteValueHelper(root, data);
+	}
+	void search(product data) {
+		if (root == nullptr) {
+			cout << "Inventory is empty." << endl;
+			return;
+		}
+		searchHelper(root, data);
+	}
+	 void restockAlert() {
+		 if (root == nullptr) {
+			 cout << "Inventory is empty." << endl;
+			 return;
+		 }
+		 cout << "Products that need restocking:" << endl;
+		 restockAlertHelper(root);
+	 }
+	 void PriceRangeSearch(float minPrice, float maxPrice) {
+		 if (root == nullptr) {
+			 cout << "Inventory is empty." << endl;
+			 return;
+		 }
+		 cout << "Products in the price range of " << minPrice << " to " << maxPrice << ":" << endl;
+		 PriceRangeSearchHelper(root, minPrice, maxPrice);
+	 }
+	 float InventoryValuation() {
+		 if (root == nullptr) {
+			 cout << "Inventory is empty." << endl;
+			 return 0;
+		 }
+		 float totalValue = 0.0;
+		 InventoryValuationHelper(root, totalValue);
+		 return totalValue;
+	 }
+	 void levelWiseDisplay() {
+		 if (root == nullptr) {
+			 cout << "Inventory is empty." << endl;
+			 return;
+		 }
+		 cout << "Level-wise display of products:" << endl;
+		 levelWiseDisplayHelper(root);
+	 }
+};
+
+int main() {
+	MyBST bst;
+	int choice;
+	product p;
+	do {
+		cout << "1. Insert Product\n";
+		cout << "2. Display Products (In-Order)\n";
+		cout << "3. Delete Product\n";
+		cout << "4. Search Product\n";
+		cout << "5. Restock Alert\n";
+		cout << "6. Price Range Search\n";
+		cout << "7. Inventory Valuation\n";
+		cout << "8. Level-wise Display\n";
+		cout << "9. Exit\n";
+		cout << "Enter your choice: ";
+		cin >> choice;
+		switch (choice) {
+		case 1:
+			cout << "Enter Product ID: ";
+			cin >> p.id;
+			cin.ignore();
+			cout << "Enter Product Name: ";
+			getline(cin, p.name);
+			cout << "Enter Product Price: ";
+			cin >> p.price;
+			cout << "Enter Product Quantity: ";
+			cin >> p.quantity;
+			bst.insert(p);
+			break;
+		case 2:
+			bst.inOrder();
+			break;
+		case 3:
+			cout << "Enter Product ID to delete: ";
+			cin >> p.id;
+			bst.deletevalue(p);
+			break;
+		case 4:
+			cout << "Enter Product ID to search: ";
+			cin >> p.id;
+			bst.search(p);
+			break;
+		case 5:
+			bst.restockAlert();
+			break;
+		case 6:
+			float minPrice, maxPrice;
+			cout << "Enter minimum price: ";
+			cin >> minPrice;
+			cout << "Enter maximum price: ";
+			cin >> maxPrice;
+			bst.PriceRangeSearch(minPrice, maxPrice);
+			break;
+		case 7:
+			cout << "Total Inventory Valuation: $" << bst.InventoryValuation() << endl;
+			break;
+		case 8:
+			bst.levelWiseDisplay();
+			break;
+		case 9:
+			cout << "Exiting..." << endl;
+			break;
+		default:
+			cout << "Invalid choice! Please try again." << endl;
+		}
+	} while (choice != 9);
+	return 0;
+}
