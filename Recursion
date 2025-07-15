@@ -1,0 +1,144 @@
+#include<iostream>
+#include<string>
+using namespace std;
+
+void print1toN(int N) {
+	if (N == 0)
+		return;
+	print1toN(N - 1);
+	cout << N << " ";
+}
+int factorial(int N) {
+	if (N == 0 || N == 1)
+		return 1;
+	return N * factorial(N - 1);
+}
+int sumofdigits(int N) {
+	if (N == 0)
+		return 0;
+	return (N % 10) + sumofdigits(N / 10);
+}
+void reversetring(string str, string& result, int index) {
+	if (index < 0)
+		return;
+	result += str[index];
+	reversetring(str, result, index - 1);
+
+}
+int calculatepower(int base, int power) {
+	if (power == 0)
+		return 1;
+	return base * calculatepower(base, power - 1);
+}
+int nthfeiboacci(int N) {
+	if (N == 0)
+		return 0;
+	if (N == 1)
+		return 1;
+	return nthfeiboacci(N - 1) + nthfeiboacci(N - 2);
+}
+void binaryStrings(string str, int n) {
+	if (str.length() == n) {
+		cout << str << endl;
+		return;
+	}
+	binaryStrings(str + "0", n);
+	binaryStrings(str + "1", n);
+}
+void towerofHanoi(int n, char source, char destination, char auxilary) {
+	if (n == 1) {
+		cout << "Move disk 1 from " << source << " to " << destination << endl;
+		return;
+	}
+	towerofHanoi(n - 1, source, auxilary, destination);
+	cout << "Move disk " << n << " from " << source << " to " << destination << endl;
+	towerofHanoi(n - 1, auxilary, destination, source);
+}
+
+void secretOperation(int n) {
+	if (n > 3)
+		secretOperation(n - 1);
+	for (int i = 3;i <= n;i++)
+		cout << (n+3)%i;
+	cout << endl;
+}
+int reverseNumber(int n,int rev=0) {
+	if(n==0)
+		return rev;
+	return reverseNumber(n / 10, rev * 10 + n % 10);
+}
+
+int nthNumber(int n) {
+	if (n == 1)
+		return 1;
+	if(n==2)
+		return 2;
+	if(n==3)
+		return 3;
+	if (n == 4)
+		return nthNumber(n - 1) + nthNumber(n - 2) + nthNumber(n - 3);
+	return nthNumber(n - 1) + nthNumber(n - 2) + nthNumber(n - 3)+nthNumber(n-4);
+}
+void print(int s, int e) {
+	if (s > e)
+		return;
+	cout << s << " ";
+	print(s + 1, e);
+}
+void  patternHelper(int n, int x, int level) {
+	if (level > x)
+		return;
+	print(n, n + level);
+	cout << endl;
+	patternHelper(n, x, level + 1);
+	if (level != x) {
+		print(n, n + level);
+		cout << endl;
+	}
+}
+void pyramidPattern(int n, int x) {
+	patternHelper(n, x, 0);
+}
+bool ifsorted(int arr[], int size) {
+	if(size==-1)
+		return true;;
+	return (arr[size] > arr[size - 1])&&ifsorted(arr, size - 1);
+}
+int binarySearch(int arr[], int num, int start, int end) {
+	if (start > end)
+		return -1;
+		int mid = start + (end - start) / 2;
+	if (arr[mid] == num) {
+		return mid;
+	}
+	else if (arr[mid] > num) {
+		return binarySearch(arr, num, start, mid - 1);
+	}
+	else {
+		return binarySearch(arr, num, mid + 1, end);
+	}
+
+}
+void print(int ans[], int ssize) {
+	for (int i = 0; i < ssize; i++) {
+		cout << ans[i] << " ";
+	}
+	cout << endl;
+}
+int sumofsubset(int ans[], int ssize) {
+	if (ssize == 0)
+		return 0;
+	return ans[ssize - 1] + sumofsubset(ans, ssize - 1);	
+}
+void subsets(int arr[], int ans[], int size, int index, int ssize) {
+	if ( index==size) {
+		print(ans, ssize);
+		cout << "Sum of this subset is: " << sumofsubset(ans, ssize) << endl;
+		return;
+	}
+
+	subsets(arr, ans, size, index+1, ssize); // Exclude current element
+	ans[ssize] = arr[index];
+	subsets(arr, ans, size, index+1, ssize + 1); // Include current element
+
+}
