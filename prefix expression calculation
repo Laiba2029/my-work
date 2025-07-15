@@ -1,0 +1,40 @@
+#include"myQueue.h"
+#include"MyStack.h"
+int main() {
+//-1 -> +
+//-2 -> *
+//-3 -> /
+	myQueue<int> q(5);
+	q.enqueue(-1);
+	q.enqueue(5);
+	q.enqueue(-2);
+	q.enqueue(2);
+	q.enqueue(3);
+	MyStack<int> s(5);
+	int v1=0,v2 = 0;
+	int operation = 0;
+	while (!q.isEmpty()) {
+		v1 = q.dequeue();
+		s.push(v1);
+		while (s.getsize() >= 3) {
+			v1 = s.pop();
+			v2 = s.pop();
+			if (v1>0&&v2>0&&s.top() < 0) {
+				operation = s.pop();
+				if (operation == -1)
+					s.push(v2 + v1);
+				else if (operation == -2)
+					s.push(v2 * v1);
+				else if (operation == -3)
+					s.push(v2 / v1);
+			}
+			else {
+				s.push(v2);
+				s.push(v1);
+				break;
+			}
+		}
+	}
+	cout << "Output: " << s.pop() << endl;
+	return 0;
+}
