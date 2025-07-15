@@ -1,0 +1,151 @@
+#include<iostream>
+using namespace std;
+template <typename T>
+class AbstractStack {
+protected:
+	T* arr;
+	int currentSize;
+	int maxSize;
+public:
+	AbstractStack(int size);
+	virtual void push(T value) = 0;
+	virtual T pop() = 0;
+	virtual T top() = 0;
+	virtual bool isEmpty() const = 0;
+	virtual bool isFull() const = 0;
+	virtual ~AbstractStack();
+};
+
+template <typename T>
+AbstractStack<T>::AbstractStack(int size) {
+	arr = new T[size];
+	maxSize = size;
+	currentSize = 0;
+}
+template <typename T>
+AbstractStack<T>::~AbstractStack() {
+	delete[] arr;
+}
+
+
+template <typename T>
+class MyStack : public AbstractStack<T>
+{
+public:
+	MyStack(int size);
+	void push(T value);
+	T pop();
+	T top();
+	bool isEmpty() const;
+	bool isFull() const;
+	void display();
+	T getMin() ;
+};
+template <typename T>
+MyStack<T>::MyStack(int size) :AbstractStack<T>(size) {}
+
+
+template <typename T>
+void MyStack<T>::push(T value) {
+	if (!isFull()) {
+		AbstractStack<T>::arr[AbstractStack<T>::currentSize] = value;
+		AbstractStack<T>::currentSize++;
+	}
+	else {
+		cout << "Queue is full." << endl;
+	}
+}
+
+template <typename T>
+T MyStack<T>::pop() {
+	if (!isEmpty())
+		return AbstractStack<T>::arr[--AbstractStack<T>::currentSize];
+	else {
+		cout << "Queue is empty." << endl;
+	}
+}
+
+template <typename T>
+T MyStack<T>::top() {
+	if (!isEmpty()) {
+		return AbstractStack<T>::arr[AbstractStack<T>::currentSize-1];
+		
+	}
+	else {
+		cout << "Queue is empty." << endl;
+	}
+}
+
+template <typename T>
+bool MyStack<T>::isEmpty() const {
+	if (AbstractStack<T>::currentSize == 0)
+		return true;
+	return false;
+}
+
+template <typename T>
+bool MyStack<T>::isFull() const {
+	if (AbstractStack<T>::currentSize == AbstractStack<T>::maxSize)
+		return true;
+	return false;
+}
+
+template <typename T>
+void MyStack<T>::display() {
+	cout << "Max Size: " << AbstractStack<T>::maxSize << endl;
+	cout << "Current Size: " << AbstractStack<T>::currentSize << endl;
+	for (int i = 0; i < AbstractStack<T>::currentSize; i++) {
+		cout << i << ". " << AbstractStack<T>::arr[i] << endl;
+	}
+}
+
+template <typename T>
+T MyStack<T>::getMin()  {
+	T minValue=0, value;
+	MyStack<T> temp(AbstractStack<T>::currentSize);
+	minValue = pop();
+	for (int i = 1; i < AbstractStack<T>::currentSize; i++) {
+		value = pop();
+		if (value < minValue) {
+			minValue = value;
+		}
+		else {
+			temp.push(value);
+		}
+	}
+	return minValue;
+}
+
+template <typename T>
+class queue : public MyStack<T> {
+public:
+	queue(int size):MyStack<T>(size){}
+	void enqueue(T value) {
+		MyStack<T>::push(value);
+	}
+	T dequeue() {
+		MyStack<T> s2(AbstractStack<T>::maxSize);
+		while(!MyStack<T>::isEmpty()) {
+			s2.push(MyStack<T>::pop());
+		}
+		T returnvalue = s2.pop();
+		while(!s2.isEmpty()) {
+			MyStack<T>::push(s2.pop());
+		}
+		return returnvalue;
+	}
+	T peek() {
+		MyStack<T> s2(AbstractStack<T>::maxSize);
+		while (!MyStack<T>::isEmpty()) {
+			s2.push(MyStack<T>::pop());
+		}
+		T returnvalue = s2.top();
+		while (!s2.isEmpty()) {
+			MyStack<T>::push(s2.pop());
+		}
+		return returnvalue;
+	}
+	void display() {
+		MyStack<T>::display();
+	}
+};
