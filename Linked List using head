@@ -1,0 +1,193 @@
+#include<iostream>
+using namespace std;
+
+template<class T>
+struct Node {
+	T data;
+	Node<T>* next;
+};
+
+template<class T>
+class LinkedList
+{
+protected:
+	Node<T>* head;
+public:
+	LinkedList() {
+		head = nullptr;
+	}
+	virtual void insertatend(T value) = 0;
+	virtual void insertatSpecificPosition(T value,int position) = 0;
+	virtual void insertatbeginning(T value) = 0;
+	virtual bool deletevalue(T value) = 0;
+	virtual bool deleteatSpecificPosition(int position) = 0;
+	virtual void display() = 0;
+	virtual bool search(T value) = 0;
+	virtual int count() = 0;
+};
+
+template<class T>
+class MyLL : public LinkedList<T> {
+public:
+    void insertatend(T value) {
+        Node<T>* nn = new Node<T>;
+        nn->data = value;
+        nn->next = nullptr;
+        if (LinkedList<T>::head == nullptr) {
+            LinkedList<T>::head = nn;
+        }
+        else {
+            Node<T>* temp = LinkedList<T>::head;
+            while (temp->next != nullptr) {
+                temp = temp->next;
+            }
+            temp->next = nn;
+        }
+    }
+
+    void insertatbeginning(T value) {
+        Node<T>* nn = new Node<T>;
+        nn->data = value;
+        nn->next = nullptr;
+        if (LinkedList<T>::head == nullptr) {
+            LinkedList<T>::head = nn;
+        }
+        else {
+            nn->next = LinkedList<T>::head;
+            LinkedList<T>::head = nn;
+        }
+    }
+
+    void insertatSpecificPosition(T value, int position) {
+        Node<T>* nn = new Node<T>;
+        nn->data = value;
+        nn->next = nullptr;
+
+        if (position == 1) {
+            nn->next = LinkedList<T>::head;
+            LinkedList<T>::head = nn;
+            return;
+        }
+
+        Node<T>* temp = LinkedList<T>::head;
+        for (int i = 1; temp != nullptr && i < position - 1; ++i) {
+            temp = temp->next;
+        }
+
+        if (temp == nullptr) {
+            cout << "Position out of range.\n";
+            delete nn;
+            return;
+        }
+
+        nn->next = temp->next;
+        temp->next = nn;
+    }
+
+    bool deletevalue(T value) {
+        if (LinkedList<T>::head == nullptr) {
+            cout << "List is empty.\n";
+            return false;
+        }
+
+        if (LinkedList<T>::head->data == value) {
+            Node<T>* toDelete = LinkedList<T>::head;
+            LinkedList<T>::head = LinkedList<T>::head->next;
+            delete toDelete;
+            return true;
+        }
+
+        Node<T>* temp = LinkedList<T>::head;
+        while (1) {
+            if (temp->next == nullptr) {
+                return false;
+            }if (temp->next->data == value)
+                break;
+
+            else
+                temp = temp->next;
+
+        }
+
+        
+
+        Node<T>* toDelete = temp->next;
+        temp->next = temp->next->next;
+        delete toDelete;
+        toDelete = nullptr;
+        return true;
+    }
+
+    bool deleteatSpecificPosition(int position) {
+        if (LinkedList<T>::head == nullptr) {
+            cout << "List is empty.\n";
+            return false;
+        }
+
+        if (position == 1) {
+            Node<T>* toDelete = LinkedList<T>::head;
+            LinkedList<T>::head = LinkedList<T>::head->next;
+            delete toDelete;
+            return true;
+        }
+
+        Node<T>* temp = LinkedList<T>::head;
+        for (int i = 1; temp != nullptr && i < position - 1; ++i) {
+            temp = temp->next;
+        }
+
+        if (temp == nullptr || temp->next == nullptr) {
+            cout << "Position out of range.\n";
+            return false;
+        }
+
+        Node<T>* toDelete = temp->next;
+        temp->next = temp->next->next;
+        delete toDelete;
+        return true;
+    }
+
+    void display() {
+        Node<T>* temp = LinkedList<T>::head;
+        while (temp != nullptr) {
+            cout << temp->data << " ";
+            temp = temp->next;
+        }
+        cout << endl;
+    }
+
+    bool search(T value) {
+        Node<T>* temp = LinkedList<T>::head;
+        while (temp != nullptr) {
+            if (temp->data == value)
+                return true;
+            temp = temp->next;
+        }
+        return false;
+    }
+
+    int count() {
+        int c = 0;
+        Node<T>* temp = LinkedList<T>::head;
+        while (temp != nullptr) {
+            ++c;
+            temp = temp->next;
+        }
+        return c;
+    }
+    void insertWithPriority(T value) {
+        Node<T>* nn = new Node<T>{ value, nullptr };
+        if (!LinkedList<T>::head || value.priority < LinkedList<T>::head->data.priority) {
+            nn->next = LinkedList<T>::head;
+            LinkedList<T>::head = nn;
+            return;
+        }
+        Node<T>* temp = LinkedList<T>::head;
+        while (temp->next && temp->next->data.priority <= value.priority) {
+            temp = temp->next;
+        }
+        nn->next = temp->next;
+        temp->next = nn;
+    }
+
+};
