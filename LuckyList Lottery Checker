@@ -1,0 +1,33 @@
+// • Rs. 3000: Ticket is a palindrome, has exactly 4 digits, and the sum of digits exceeds 20
+// • Rs. 2000: Ticket is a palindrome (regardless of digit count or sum)
+// • Rs. 1000: Ticket has exactly 4 digits and the sum exceeds 20
+// • Rs. 0: No conditions met
+#include"myLL.h"
+int checkIfWon(myLL &list) {
+	myLL l1 = list;
+	myLL l2 = list;
+	myLL l3 = list;
+	int palindrome = 1;
+	int size = 0,sum=0;
+	while (!l1.isEmpty() || !l2.isEmpty()) {
+		if (l2.deleteFromTail() != l1.deleteFromHead()){
+			palindrome = 0;
+		break;
+	}
+	}
+	while (!l3.isEmpty()) {
+		sum += l3.deleteFromHead();
+		size++;
+	}
+	if (size == 4 && palindrome == 1 && sum >=20) {
+		return 3000;
+	}
+	else if (size == 4 && sum >= 20) {
+		return 1000;
+	}
+	else if (palindrome == 1) {
+		return 2000;
+	}
+	else
+		return 0;
+}
